@@ -1,17 +1,15 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import * as Yup from 'yup';
 import { Styles } from '../../Utils/Style';
 import { Formik, Form } from 'formik';
+import { SignUpUser } from '../../redux/actionGenerator';
 import { useDispatch, useSelector, shallowEqual } from 'react-redux';
-import { SignInUser, authState } from '../../redux/actionGenerator';
+import Loader from '../../components/Loader';
+import CustomCheckBox from '../../components/CustomCheckBox';
 import CustomTextInput from '../../components/CustomTextInput';
-// import Loader from '../../components/Loader';
-import Spiner from '../../components/Spiner';
-import { auth } from '../../firebase';
-import { Redirect } from 'react-router-dom';
 
 const Home = () => {
-  const { user, isLoading } = useSelector(
+  const { user, isLoading, error } = useSelector(
     ({ user, isLoading, error }) => ({
       user: user,
       isLoading: isLoading,
@@ -21,26 +19,28 @@ const Home = () => {
   );
   const dispatch = useDispatch();
   const handleClick = (value) => {
-    dispatch(SignInUser(value));
+    dispatch(SignUpUser(value));
   };
-  useEffect(() => {
-    auth.onAuthStateChanged(function (user) {
-      if (user) {
-        dispatch(authState(user));
-      }
-    });
-  }, [dispatch]);
-  return user.displayName ? (
-    <Redirect to='/home' />
-  ) : !isLoading ? (
+
+  console.log(user, isLoading, error);
+  return !isLoading ? (
     <Styles>
       <Formik
         initialValues={{
+          name: '',
           email: '',
           password: '',
+          acceptedTerms: false,
         }}
         validationSchema={Yup.object({
+          name: Yup.string()
+            .min(3, 'Must be at least 3 character')
+            .max(15, 'Less than 15 charcters')
+            .required('Required'),
           email: Yup.string().email('Invalid Email').required('Required'),
+          acceptedTerms: Yup.boolean()
+            .oneOf([true], 'You must accept the terms and condition')
+            .required('Required'),
           password: Yup.string()
             .required()
             .min(2, 'Seems a bit short...')
@@ -48,14 +48,23 @@ const Home = () => {
         })}
         onSubmit={(values, { setSubmitting, resetForm }) => {
           handleClick(values);
-          resetForm();
-          setSubmitting(false);
+          setTimeout(() => {
+            // alert(JSON.stringify(values, null, 2));
+            resetForm();
+            setSubmitting(false);
+          }, 1000);
         }}
       >
         {(props) => (
           <Form>
-            <h1>Login Form</h1>
+            <h1>Signup Form</h1>
 
+            <CustomTextInput
+              label='Name'
+              name='name'
+              type='text'
+              placeholder='Amar'
+            />
             <CustomTextInput
               label='Email'
               name='email'
@@ -68,6 +77,9 @@ const Home = () => {
               type='password'
               placeholder='********'
             />
+            <CustomCheckBox name='acceptedTerms'>
+              I accept he terms and condition
+            </CustomCheckBox>
             <button type='submit'>
               {props.isSubmitting ? 'loading...' : 'submit'}
             </button>
@@ -78,7 +90,7 @@ const Home = () => {
       </Formik>
     </Styles>
   ) : (
-    <Spiner />
+    <Loader />
   );
 };
 

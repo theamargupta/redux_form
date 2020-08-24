@@ -1,8 +1,10 @@
-import { load, createUser, fireError } from '../actionType';
+import { SignIn, SignUp, createUser, fireError } from '../actionType';
 const loadingReducer = (state = false, action) => {
   const { type } = action;
   switch (type) {
-    case load:
+    case SignIn:
+      return true;
+    case SignUp:
       return true;
     case createUser:
       return false;

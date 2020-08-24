@@ -1,9 +1,9 @@
 import { takeEvery, call, put } from 'redux-saga/effects';
-import { load } from '../actionType';
-import { createUser } from '../../api';
+import { SignUp, SignIn, statePersist } from '../actionType';
+import { createUser, SigniInUser } from '../../api';
 import { setError, setUser } from '../actionGenerator';
 
-function* handleImagesLoad({ payload }) {
+function* handleSignUp({ payload }) {
   try {
     const user = yield call(createUser, payload);
     yield put(setUser(user));
@@ -11,9 +11,22 @@ function* handleImagesLoad({ payload }) {
     yield put(setError(error.toString()));
   }
 }
+function* handleSignIn({ payload }) {
+  try {
+    const user = yield call(SigniInUser, payload);
+    yield put(setUser(user));
+  } catch (error) {
+    yield put(setError(error.toString()));
+  }
+}
+function* handlestatePersist({ payload }) {
+  yield put(setUser(payload));
+}
 
 function* rootSaga() {
-  yield takeEvery(load, handleImagesLoad);
+  yield takeEvery(SignUp, handleSignUp);
+  yield takeEvery(SignIn, handleSignIn);
+  yield takeEvery(statePersist, handlestatePersist);
 }
 
 //=> watcherSaga -> action -> workerSaga
